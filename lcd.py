@@ -46,7 +46,8 @@ LCD_CMD = False
 
 LCD_LINE_1 = 0x80  # LCD RAM address for the 1st line
 LCD_LINE_2 = 0xC0  # LCD RAM address for the 2nd line
-
+LCD_LINE_3 = 0x94  # LCD RAM address for the 3rd line
+LCD_LINE_4 = 0xD4  # LCD RAM address for the 4th line 
 # Timing constants
 
 E_PULSE = 0.00005
@@ -54,14 +55,13 @@ E_DELAY = 0.00005
 
 
 class LCD(object):
-
     def __init__(self):
 
-      # Main program block
+        # Main program block
 
         GPIO.setwarnings(False)
 
-      # Initialise display
+        # Initialise display
 
         self.lcd_init()
 
@@ -75,7 +75,7 @@ class LCD(object):
         GPIO.setup(LCD_D7, GPIO.OUT)  # DB7
         GPIO.setup(LED_ON, GPIO.OUT)  # Backlight enable
 
-      # Initialise display
+        # Initialise display
 
         self.lcd_byte(0x33, LCD_CMD)
         self.lcd_byte(0x32, LCD_CMD)
@@ -84,13 +84,13 @@ class LCD(object):
         self.lcd_byte(0x06, LCD_CMD)
         self.lcd_byte(0x01, LCD_CMD)
 
-    def message(self, message, style=1):
-      # Auto splits, not perfect for clock
-      # Send string to display
-      # style=1 Left justified
-      # style=2 Centred
-      # style=3 Right justified
-      # style=4 typing
+    def message(self, message, style=1,speed=1):
+        # Auto splits, not perfect for clock
+        # Send string to display
+        # style=1 Left justified
+        # style=2 Centred
+        # style=3 Right justified
+        # style=4 typing
 
         msgs = message.split('\n')
         for (idx, msg) in enumerate(msgs):
@@ -98,17 +98,17 @@ class LCD(object):
                 self.lcd_byte(LCD_LINE_1, LCD_CMD)
             elif idx == 0x01:
                 self.lcd_byte(LCD_LINE_2, LCD_CMD)
-            if style!=4:
-              self.lcd_string(msg, style)
-            elif style==4:
-	      self.type_string(msg)
+            if style != 4:
+                self.lcd_string(msg, style)
+            elif style == 4:
+                self.type_string(msg, speed)
 
     def type_string(self, message, speed=1, style=1):
 
-      # Send string to display
-      # style=1 Left justified
-      # style=2 Centred
-      # style=3 Right justified
+        # Send string to display
+        # style=1 Left justified
+        # style=2 Centred
+        # style=3 Right justified
 
         if style == 0x01:
             message = message.ljust(LCD_WIDTH, ' ')
@@ -119,21 +119,21 @@ class LCD(object):
 
         for i in range(LCD_WIDTH):
             self.lcd_byte(ord(message[i]), LCD_CHR)
-	    if message[i]!=" ":
-              time.sleep(speed)
+            if message[i] != " ":
+                time.sleep(speed)
 
     def clear(self):
-      self.lcd_byte(0x06, LCD_CMD)
-      self.lcd_byte(0x01, LCD_CMD)	
-      time.sleep(0.45)
+        self.lcd_byte(0x06, LCD_CMD)
+        self.lcd_byte(0x01, LCD_CMD)
+        time.sleep(0.45)
 
     def write_line1(self, message, style):
         self.lcd_byte(LCD_LINE_1, LCD_CMD)
-	self.lcd_string(message, style)
+        self.lcd_string(message, style)
 
     def write_line2(self, message, style):
         self.lcd_byte(LCD_LINE_2, LCD_CMD)
-	self.lcd_string(message, style)
+        self.lcd_string(message, style)
 
     def set_line1(self):
         self.lcd_byte(LCD_LINE_1, LCD_CMD)
@@ -142,10 +142,10 @@ class LCD(object):
         self.lcd_byte(LCD_LINE_2, LCD_CMD)
 
     def lcd_string(self, message, style):
-      # Send string to display
-      # style=1 Left justified
-      # style=2 Centred
-      # style=3 Right justified
+        # Send string to display
+        # style=1 Left justified
+        # style=2 Centred
+        # style=3 Right justified
 
         if style == 0x01:
             message = message.ljust(LCD_WIDTH, ' ')
@@ -159,14 +159,14 @@ class LCD(object):
 
     def lcd_byte(self, bits, mode):
 
-      # Send byte to data pins
-      # bits = data
-      # mode = True  for character
-      #        False for command
+        # Send byte to data pins
+        # bits = data
+        # mode = True  for character
+        #        False for command
 
         GPIO.output(LCD_RS, mode)  # RS
 
-      # High bits
+        # High bits
 
         GPIO.output(LCD_D4, False)
         GPIO.output(LCD_D5, False)
@@ -181,7 +181,7 @@ class LCD(object):
         if bits & 0x80 == 0x80:
             GPIO.output(LCD_D7, True)
 
-      # Toggle 'Enable' pin
+            # Toggle 'Enable' pin
 
         time.sleep(E_DELAY)
         GPIO.output(LCD_E, True)
@@ -189,7 +189,7 @@ class LCD(object):
         GPIO.output(LCD_E, False)
         time.sleep(E_DELAY)
 
-      # Low bits
+        # Low bits
 
         GPIO.output(LCD_D4, False)
         GPIO.output(LCD_D5, False)
@@ -204,7 +204,7 @@ class LCD(object):
         if bits & 0x08 == 0x08:
             GPIO.output(LCD_D7, True)
 
-      # Toggle 'Enable' pin
+            # Toggle 'Enable' pin
 
         time.sleep(E_DELAY)
         GPIO.output(LCD_E, True)
@@ -218,5 +218,3 @@ if __name__ == '__main__':
     lcd.clear()
     lcd.message('Hello Bhack\nHow are you?', 4)
     lcd.clear()
-
-			
